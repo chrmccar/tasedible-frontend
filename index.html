@@ -165,9 +165,13 @@
         <div data-value="shoots">Shoots</div>
       </div>
     
-      <label for="date">Date</label>
-      <small style="display: block; margin-top: -0.75rem; margin-bottom: 0.5rem; color: #666;">(Default is today)</small>
-      <input type="date" id="date" />
+      <label for="date">
+        <span style="display: flex; align-items: center; gap: 0.5rem;">
+          <strong>Date</strong>
+          <span style="font-weight: normal; font-size: 0.85rem; color: #666;">(Default is today)</span>
+        </span>
+      </label>
+      <input type="date" id="date" />      
       <!-- Advanced search inputs: location, edible parts, date, and search button -->
       <button onclick="searchPlants()">Search</button>
     </div>    
