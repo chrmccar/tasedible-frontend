@@ -120,45 +120,36 @@
     .location-button:hover {
       background-color: #2e6b51;
     }
+    @media (max-width: 600px) {
+      body {
+        padding: 1rem;
+        align-items: flex-start;
+      }
+      .container {
+        padding: 1.5rem 1rem;
+        border-radius: 12px;
+        box-shadow: none;
+        max-width: 100%;
+      }
+    }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>Find Edible Plants Near You</h1>
 
-    <p style="text-align: center; margin-bottom: 1.5rem;">
-      <button onclick="checkPassword()" style="font-size: 1rem; background: none; color: #3a7d60; border: none; cursor: pointer; text-decoration: underline;">
-        🌱 Contribute a New Plant
-      </button>
-    </p> 
+    <!-- Quick Search Near Me -->
+    <button onclick="quickSearch()" style="margin-bottom: 1rem;">🌿 Quick Search Near Me</button>
 
-    <button onclick="quickSearch()">🌿 Quick Search</button>
+    <!-- Quick Search All Tasmania -->
+    <button onclick="quickSearchAllTasmania()">🌿 Quick Search All Tasmania</button>
 
     <div class="divider">or advanced search</div>
 
     <label for="location">Search by Location</label>
     <input type="text" id="location" placeholder="e.g., Taroona or -42.96, 147.35" />
-    <button class="inline-button" onclick="useMyLocation()">📍 Use my current location</button>     
-
-    <label for="vegetation">
-      Search by Vegetation Community <span style="font-weight: normal; font-size: 0.85rem; color: #666;">
-        (leave this blank if using location)
-      </span>
-    </label>
-
-    <select id="vegetation" multiple size="6">
-      <option value="Modified Land">Modified Land</option>
-      <option value="Dry eucalypt forest and woodland">Dry eucalypt forest and woodland</option>
-      <option value="Highland treeless vegetation">Highland treeless vegetation</option>
-      <option value="Moorland, sedgeland and rushland">Moorland, sedgeland and rushland</option>
-      <option value="Native grassland">Native grassland</option>
-      <option value="Non-eucalypt forest and woodland">Non-eucalypt forest and woodland</option>
-      <option value="Other natural environments">Other natural environments</option>
-      <option value="Rainforest and related scrub">Rainforest and related scrub</option>
-      <option value="Saltmarsh and wetland">Saltmarsh and wetland</option>
-      <option value="Scrub, heathland and coastal complexes">Scrub, heathland and coastal complexes</option>
-      <option value="Wet eucalypt forest and woodland">Wet eucalypt forest and woodland</option>
-    </select>
+    <button class="inline-button" onclick="useMyLocationWithFeedback()">📍 Use my current location</button>
+    <small id="location-status" style="display: block; margin-top: -0.5rem; margin-bottom: 1rem; color: #3a7d60;"></small>
 
     <label>Edible Part(s)</label>
     <div id="edible-options" class="select-like">
@@ -171,9 +162,45 @@
     </div>
 
     <label for="date">Date</label>
+    <small style="display: block; margin-top: -0.75rem; margin-bottom: 0.5rem; color: #666;">(Default is today)</small>
     <input type="date" id="date" />
 
     <button onclick="searchPlants()">Search</button>
+
+    <div>
+      <button type="button" onclick="toggleVegetation()" style="background:none; border:none; color:#3a7d60; font-weight:bold; font-size:1rem; cursor:pointer; margin-bottom:0.5rem;">
+        ➕ More Filters
+      </button>      
+    
+      <div id="vegetation-wrapper" style="display:none; margin-bottom:1rem;">
+        <label for="vegetation" title="The dominant native vegetation at the location. This helps refine search results if a precise location isn’t used.">
+          Search by Vegetation Community
+          <span style="font-weight: normal; font-size: 0.85rem; color: #666;">
+            (leave this blank if using location)
+          </span>
+        </label>        
+    
+        <select id="vegetation" multiple size="6">
+          <option value="Modified Land">Modified Land</option>
+          <option value="Dry eucalypt forest and woodland">Dry eucalypt forest and woodland</option>
+          <option value="Highland treeless vegetation">Highland treeless vegetation</option>
+          <option value="Moorland, sedgeland and rushland">Moorland, sedgeland and rushland</option>
+          <option value="Native grassland">Native grassland</option>
+          <option value="Non-eucalypt forest and woodland">Non-eucalypt forest and woodland</option>
+          <option value="Other natural environments">Other natural environments</option>
+          <option value="Rainforest and related scrub">Rainforest and related scrub</option>
+          <option value="Saltmarsh and wetland">Saltmarsh and wetland</option>
+          <option value="Scrub, heathland and coastal complexes">Scrub, heathland and coastal complexes</option>
+          <option value="Wet eucalypt forest and woodland">Wet eucalypt forest and woodland</option>
+        </select>
+      </div>
+    </div>
+    <hr style="margin-top: 2rem; margin-bottom: 1rem; border: none; border-top: 1px solid #ccc;" />
+    <p style="text-align: center; margin-top: 2rem;">
+      <button onclick="checkPassword()" style="font-size: 1rem; background: none; color: #3a7d60; border: none; cursor: pointer; text-decoration: underline;">
+        🌱 Contribute a New Plant
+      </button>
+    </p>
   </div>
 
   <script>
@@ -230,8 +257,6 @@
       });
     }
 
-
-
     function storeAndRedirect(location, parts, vegetation, date) {
       localStorage.setItem("lastSearchLocation", location);
       localStorage.setItem("lastSearchParts", JSON.stringify(parts));
@@ -265,6 +290,12 @@
         const allParts = ["leaves", "berry", "tubers", "flowers", "seeds", "shoots"];
         storeAndRedirect(location, allParts, [], now);
       });
+    }
+
+    function quickSearchAllTasmania() {
+      const now = new Date().toISOString().split("T")[0];
+      const allParts = ["leaves", "berry", "tubers", "flowers", "seeds", "shoots"];
+      storeAndRedirect("All Tasmania", allParts, [], now);
     }
   </script>
 
@@ -300,6 +331,24 @@
       alert("❌ Incorrect password.");
     }
     closeModal();
+  }
+</script>
+
+<script>
+  function toggleVegetation() {
+    const wrapper = document.getElementById("vegetation-wrapper");
+    wrapper.style.display = wrapper.style.display === "none" ? "block" : "none";
+  }
+</script>
+
+<script>
+  function useMyLocationWithFeedback() {
+    const statusEl = document.getElementById("location-status");
+    statusEl.textContent = "Locating…";
+
+    useMyLocation(() => {
+      statusEl.textContent = "Location detected ✅";
+    });
   }
 </script>
 
