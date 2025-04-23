@@ -306,7 +306,9 @@
     function quickSearchAllTasmania() {
       const now = new Date().toISOString().split("T")[0];
       const allParts = ["leaves", "berry", "tubers", "flowers", "seeds", "shoots"];
-      storeAndRedirect("All Tasmania", allParts, [], now);
+      const allVegetation = Array.from(document.querySelectorAll("#vegetation option")).map(opt => opt.value);
+
+      storeAndRedirect("", allParts, allVegetation, now);
     }
   </script>
 
