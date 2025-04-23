@@ -375,5 +375,16 @@
   }
 </script>
 
+<script>
+  function toggleAdvanced() {
+    const adv = document.getElementById("advanced-wrapper");
+    const veg = document.getElementById("vegetation-wrapper");
+    const isVisible = adv.style.display === "block";
+
+    adv.style.display = isVisible ? "none" : "block";
+    veg.style.display = isVisible ? "none" : "block";
+  }
+</script>
+
 </body>
 </html>
