@@ -291,8 +291,14 @@
       const location = document.getElementById("location").value;
       const parts = Array.from(document.querySelectorAll("#edible-options .selected"))
         .map(div => div.getAttribute("data-value"));
-      const vegetation = Array.from(document.getElementById("vegetation").selectedOptions)
-        .map(option => option.value);
+
+      let vegetation = [];
+
+      const vegetationSelect = document.getElementById("vegetation");
+      if (vegetationSelect) {
+        vegetation = Array.from(vegetationSelect.selectedOptions).map(opt => opt.value);
+      }
+
       const date = document.getElementById("date").value;
 
       storeAndRedirect(location, parts, vegetation, date);
