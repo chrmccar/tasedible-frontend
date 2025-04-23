@@ -110,6 +110,12 @@
             });
           }
 
+          const totalCount = data.length;
+          const matchCount = filtered.length;
+
+          const infoDiv = document.getElementById("search-info");
+          infoDiv.innerHTML += `<br><strong>Showing ${matchCount} of ${totalCount} plants</strong>`;
+
           const container = document.getElementById("results-container");
           if (filtered.length === 0) {
             container.innerHTML = "<p>No plants found matching this search.</p>";
