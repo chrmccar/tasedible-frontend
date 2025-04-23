@@ -77,7 +77,7 @@
 
       summaryLines.push(`Edible Parts: ${parts.length > 0 ? parts.join(", ") : "Any"}`);
       summaryLines.push(`Date: ${date}`);
-      document.getElementById("search-info").innerHTML = summaryLines.join("\n");
+      document.getElementById("search-info").innerHTML = summaryLines.join("<br>");
 
       fetch("https://tasedible-backend.onrender.com/data")
         .then(res => res.json())
