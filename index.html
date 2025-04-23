@@ -182,6 +182,7 @@
         + Advanced Search Filters
       </button>      
     
+      <!-- ✅ This stays in your advanced-wrapper -->
       <div id="vegetation-wrapper" style="display:none; margin-bottom:1rem;">
         <label for="vegetation" title="The dominant native vegetation at the location. This helps refine search results if a precise location isn’t used.">
           Search by Vegetation Community
@@ -189,7 +190,7 @@
             (leave this blank if using location)
           </span>
         </label>        
-    
+
         <select id="vegetation" multiple size="6">
           <option value="Modified Land">Modified Land</option>
           <option value="Dry eucalypt forest and woodland">Dry eucalypt forest and woodland</option>
@@ -204,6 +205,7 @@
           <option value="Wet eucalypt forest and woodland">Wet eucalypt forest and woodland</option>
         </select>
       </div>
+
     </div>
     <hr style="margin-top: 2rem; margin-bottom: 1rem; border: none; border-top: 1px solid #ccc;" />
     <p style="text-align: center; margin-top: 2rem;">
@@ -305,28 +307,13 @@
     function quickSearchAllTasmania() {
       const now = new Date().toISOString().split("T")[0];
       const allParts = ["leaves", "berry", "tubers", "flowers", "seeds", "shoots"];
-      const allVegetation = Array.from(document.querySelectorAll("#vegetation option")).map(opt => opt.value);
+      const vegetationSelect = document.getElementById("vegetation");
+      const allVegetation = Array.from(vegetationSelect.options).map(opt => opt.value);
 
-      storeAndRedirect("", allParts, allVegetation, now);
+      storeAndRedirect("All Tasmania", allParts, allVegetation, now);
     }
-  </script>
 
-  <!-- Hidden vegetation options used by Quick Search -->
-  <div style="display: none;">
-    <select id="vegetation" multiple size="6">
-      <option value="Modified Land">Modified Land</option>
-      <option value="Dry eucalypt forest and woodland">Dry eucalypt forest and woodland</option>
-      <option value="Highland treeless vegetation">Highland treeless vegetation</option>
-      <option value="Moorland, sedgeland and rushland">Moorland, sedgeland and rushland</option>
-      <option value="Native grassland">Native grassland</option>
-      <option value="Non-eucalypt forest and woodland">Non-eucalypt forest and woodland</option>
-      <option value="Other natural environments">Other natural environments</option>
-      <option value="Rainforest and related scrub">Rainforest and related scrub</option>
-      <option value="Saltmarsh and wetland">Saltmarsh and wetland</option>
-      <option value="Scrub, heathland and coastal complexes">Scrub, heathland and coastal complexes</option>
-      <option value="Wet eucalypt forest and woodland">Wet eucalypt forest and woodland</option>
-    </select>
-  </div>
+  </script>
 
   <!-- Password Modal -->
   <div id="passwordModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.4); z-index:9999;">
