@@ -77,9 +77,11 @@
 
       summaryLines.push(`Edible Parts: ${parts.length > 0 ? parts.join(", ") : "Any"}`);
       summaryLines.push(`Date: ${date}`);
+      const totalCount = data.length;
+      const matchCount = filtered.length;
+
       const infoDiv = document.getElementById("search-info");
       infoDiv.innerHTML = summaryLines.join("<br>") + `<br><strong>Showing ${matchCount} of ${totalCount} plants</strong>`;
-
 
       fetch("https://tasedible-backend.onrender.com/data")
         .then(res => res.json())
