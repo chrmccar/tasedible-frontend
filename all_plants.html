@@ -1,0 +1,65 @@
+<!-- File: all_plants.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>All Edible Plants</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f4faf6;
+      padding: 2rem;
+      color: #2f4f4f;
+    }
+    h1 {
+      font-size: 1.8rem;
+      margin-bottom: 1rem;
+      color: #2e7d32;
+    }
+    .plant-card {
+      background: white;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    }
+    .plant-card h2 {
+      margin: 0;
+      font-size: 1.2rem;
+      color: #3a7d60;
+    }
+    .plant-card p {
+      margin: 0.25rem 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>All Edible Plants</h1>
+  <div id="plant-list">Loading...</div>
+
+  <script>
+    fetch("https://tasedible-backend.onrender.com/data")
+      .then(res => res.json())
+      .then(data => {
+        const container = document.getElementById("plant-list");
+        const headers = data[0];
+        const rows = data.slice(1);
+
+        container.innerHTML = "";
+
+        rows.forEach(row => {
+          const entry = Object.fromEntries(headers.map((h, i) => [h, row[i] || ""]));
+          const div = document.createElement("div");
+          div.className = "plant-card";
+          div.innerHTML = `
+            <h2>${entry["common_name"] || "Unnamed Plant"} <small>(${entry["scientific_name"] || "Unknown"})</small></h2>
+            <p><strong>Edible parts:</strong> ${entry["edible_parts"] || "Unknown"}</p>
+            <p><strong>Vegetation type:</strong> ${entry["vegetation_class"] || "Unknown"}</p>
+          `;
+          container.appendChild(div);
+        });
+      });
+  </script>
+</body>
+</html>
