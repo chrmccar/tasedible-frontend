@@ -59,10 +59,8 @@
     const urlParams = new URLSearchParams(window.location.search);
     // Convert 'tasmannia_lanceolata' → 'Tasmannia lanceolata'
     const rawId = urlParams.get('plant') || "";
-    const plantId = rawId
-    .split('_')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
+    const plantId = rawId.replace(/_/g, ' ').toLowerCase().trim();  // tasmannia lanceolata
+
 
     const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
@@ -118,12 +116,14 @@
 
         const main = cleanRows(mainRows).map(r =>
         Object.fromEntries(mainHeaders.map((h, i) => [h, r[i]]))
-        ).find(p => p.scientific_name === normalizedPlantId);
+        ).find(p => (p.scientific_name || "").toLowerCase().trim() === plantId);
+
 
 
         const extra = cleanRows(extraRows).map(r =>
         Object.fromEntries(extraHeaders.map((h, i) => [h, r[i]]))
-        ).find(p => p.scientific_name === normalizedPlantId);
+        ).find(p => (p.scientific_name || "").toLowerCase().trim() === plantId);
+
 
 
       if (!main) {
