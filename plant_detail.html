@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Plant Details</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f4faf6;
+      color: #2f4f4f;
+      padding: 2rem;
+      max-width: 800px;
+      margin: auto;
+    }
+    h1 {
+      font-size: 2rem;
+      color: #2e7d32;
+    }
+    img {
+      width: 100%;
+      max-width: 300px;
+      border-radius: 12px;
+      object-fit: cover;
+      margin-bottom: 1rem;
+    }
+    section {
+      margin-top: 1.5rem;
+    }
+    .label {
+      font-weight: bold;
+      margin-top: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <h1 id="plant-name">Loading...</h1>
+  <img id="plant-image" src="" alt="Plant Image">
+  <div id="plant-info"></div>
+
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const plantId = urlParams.get("plant");
+
+    function convertDriveLinkToImageUrl(url) {
+      if (!url) return "images/placeholder.jpg";
+      const match = url.match(/\/file\/d\/([^/]+)/);
+      if (!match) return "images/placeholder.jpg";
+      return `https://lh3.googleusercontent.com/d/${match[1]}=s600`;
+    }
+
+    async function loadPlantDetails() {
+      const [mainRes, detailRes] = await Promise.all([
+        fetch("https://tasedible-backend.onrender.com/data"),
+        fetch("https://tasedible-backend.onrender.com/details") // <- New endpoint
+      ]);
+
+      const [mainData, detailData] = await Promise.all([mainRes.json(), detailRes.json()]);
+      const mainHeaders = mainData[0];
+      const detailHeaders = detailData[0];
+      const mainRows = mainData.slice(1);
+      const detailRows = detailData.slice(1);
+
+      const plantMain = mainRows.map(row => Object.fromEntries(mainHeaders.map((h, i) => [h, row[i]])))
+        .find(p => (p.scientific_name || "").toLowerCase().replace(/\s+/g, "_") === plantId);
+
+      const plantDetail = detailRows.map(row => Object.fromEntries(detailHeaders.map((h, i) => [h, row[i]])))
+        .find(p => (p.scientific_name || "").toLowerCase().replace(/\s+/g, "_") === plantId);
+
+      if (!plantMain) {
+        document.getElementById("plant-name").textContent = "Plant not found.";
+        return;
+      }
+
+      document.getElementById("plant-name").textContent = plantMain.common_name || plantMain.scientific_name;
+      document.getElementById("plant-image").src = convertDriveLinkToImageUrl(plantMain.image_url);
+
+      const info = document.getElementById("plant-info");
+      info.innerHTML = `
+        <section><div class="label">Scientific Name:</div> ${plantMain.scientific_name || "Unknown"}</section>
+        <section><div class="label">Edible Parts:</div> ${plantMain.edible_parts || "Unknown"}</section>
+        <section><div class="label">Vegetation Class:</div> ${plantMain.vegetation_class || "Unknown"}</section>
+        ${plantDetail?.cultural_uses ? `<section><div class="label">Cultural Uses:</div> ${plantDetail.cultural_uses}</section>` : ""}
+        ${plantDetail?.preparation_tips ? `<section><div class="label">Preparation Tips:</div> ${plantDetail.preparation_tips}</section>` : ""}
+        ${plantDetail?.nutritional_info ? `<section><div class="label">Nutritional Info:</div> ${plantDetail.nutritional_info}</section>` : ""}
+        ${plantDetail?.references ? `<section><div class="label">References:</div> ${plantDetail.references}</section>` : ""}
+      `;
+    }
+
+    loadPlantDetails();
+  </script>
+</body>
+</html>
