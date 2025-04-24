@@ -105,10 +105,14 @@
       console.log("🔍 Available plants:", mainRows.map(r => r[0]));
       console.log("🔍 Looking for:", plantId);
 
-      const main = mainRows.map(r => Object.fromEntries(mainHeaders.map((h, i) => [h, r[i]])))
-        .find(p => ((p.scientific_name || '').toLowerCase().trim().replace(/\s+/g, '_')) === plantId);
-      const extra = extraRows.map(r => Object.fromEntries(extraHeaders.map((h, i) => [h, r[i]])))
-         .find(p => ((p.scientific_name || '').toLowerCase().trim().replace(/\s+/g, '_')) === plantId);
+      const normalize = str => (str || '').toLowerCase().trim().replace(/\s+/g, '_');
+
+      const main = mainRows.slice(1).map(r => Object.fromEntries(mainHeaders.map((h, i) => [h, r[i]])))
+        .find(p => normalize(p.scientific_name) === plantId);
+
+      const extra = extraRows.slice(1).map(r => Object.fromEntries(extraHeaders.map((h, i) => [h, r[i]])))
+        .find(p => normalize(p.scientific_name) === plantId);
+
 
       if (!main) {
         console.warn("⚠️ Plant not found:", plantId);
