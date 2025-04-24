@@ -41,10 +41,10 @@
   <script>
     function convertDriveLinkToImageUrl(url) {
         if (!url) return "images/placeholder.jpg";
-        const cleanUrl = url.trim(); // ← removes whitespace and line breaks
+        const cleanUrl = url.trim();
         const match = cleanUrl.match(/\/file\/d\/([^/]+)/);
         if (!match) return cleanUrl;
-        return `https://drive.google.com/uc?export=view&id=${match[1]}`;
+        return `https://lh3.googleusercontent.com/d/${match[1]}=s200`; // Google-hosted preview
     }
     fetch("https://tasedible-backend.onrender.com/data")
       .then(res => res.json())
