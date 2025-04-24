@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Seasonal Edible Plants — Tasmania</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f4faf6;
+      padding: 2rem;
+      color: #2f4f4f;
+    }
+    h1 {
+      font-size: 1.8rem;
+      margin-bottom: 1rem;
+      color: #2e7d32;
+    }
+    .plant-card {
+      background: white;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    }
+    .plant-card h2 {
+      margin: 0;
+      font-size: 1.2rem;
+      color: #3a7d60;
+    }
+    .plant-card p {
+      margin: 0.25rem 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>🌿 Edible Plants In Season This Month</h1>
+  <div id="plant-list">Loading...</div>
+
+  <script>
+    function convertDriveLinkToImageUrl(url) {
+      if (!url) return "images/placeholder.jpg";
+      url = url.trim();
+      const match = url.match(/\/file\/d\/([^/]+)/) || url.match(/\/d\/([^/]+)/);
+      if (!match) return "images/placeholder.jpg";
+      return `https://drive.google.com/uc?export=view&id=${match[1]}`;
+    }
+
+    function getCurrentMonthIndex() {
+      return new Date().getMonth(); // 0 = January
+    }
+
+    fetch("https://tasedible-backend.onrender.com/data")
+      .then(res => res.json())
+      .then(data => {
+        const container = document.getElementById("plant-list");
+        const headers = data[0];
+        const rows = data.slice(1);
+        const monthIndex = getCurrentMonthIndex();
+
+        const filteredPlants = [];
+
+        rows.forEach(row => {
+          const entry = Object.fromEntries(headers.map((h, i) => [h, row[i] || ""]));
+          const edibleParts = (entry["edible_parts"] || "").split(",").map(s => s.trim().toLowerCase());
+          const seasonalParts = [];
+
+          // Check each possible part's availability
+          ["leaves", "berry", "tubers", "flowers", "seeds", "shoots"].forEach(part => {
+            if (edibleParts.includes(part)) {
+              const field = part + "_availability";
+              const values = (entry[field] || "").split(",");
+              const status = values[monthIndex];
+              if (status === "1") seasonalParts.push(capitalize(part) + " (Possible)");
+              if (status === "2") seasonalParts.push(capitalize(part) + " (Peak)");
+            }
+          });
+
+          if (seasonalParts.length > 0) {
+            filteredPlants.push({
+              ...entry,
+              seasonal_parts: seasonalParts
+            });
+          }
+        });
+
+        if (filteredPlants.length === 0) {
+          container.innerHTML = "<p>No edible plants currently in season this month.</p>";
+          return;
+        }
+
+        container.innerHTML = "";
+        filteredPlants.forEach(plant => {
+          const imageUrl = convertDriveLinkToImageUrl(plant["image_url"]);
+          const div = document.createElement("div");
+          div.className = "plant-card";
+          div.innerHTML = `
+            <div style="display: flex; gap: 1rem; align-items: center;">
+              <img src="${imageUrl}" alt="${plant["common_name"]}" style="width: 100px; height: 100px; object-fit: cover; border-radius: 8px;" onerror="this.src='images/placeholder.jpg'">
+              <div>
+                <h2>${plant["common_name"] || "Unnamed Plant"} <small>(${plant["scientific_name"] || "Unknown"})</small></h2>
+                <p><strong>In season:</strong> ${plant.seasonal_parts.join(", ")}</p>
+                <p><strong>Vegetation type:</strong> ${plant["vegetation_class"] || "Unknown"}</p>
+              </div>
+            </div>
+          `;
+          container.appendChild(div);
+        });
+      });
+
+    function capitalize(word) {
+      return word.charAt(0).toUpperCase() + word.slice(1);
+    }
+  </script>
+</body>
+</html>

@@ -318,12 +318,48 @@
     }
 
     function quickSearchAllTasmania() {
-      const now = new Date().toISOString().split("T")[0];
-      const allParts = ["leaves", "berry", "tubers", "flowers", "seeds", "shoots"];
-      const vegetationSelect = document.getElementById("vegetation");
-      const allVegetation = Array.from(vegetationSelect.options).map(opt => opt.value);
+      const monthIndex = new Date().getMonth(); // 0 = Jan, 11 = Dec
 
-      storeAndRedirect("All Tasmania", allParts, allVegetation, now);
+      fetch("https://tasedible-backend.onrender.com/data")
+        .then(res => res.json())
+        .then(data => {
+          const headers = data[0];
+          const rows = data.slice(1);
+          const filteredPlants = [];
+
+          rows.forEach(row => {
+            const entry = Object.fromEntries(headers.map((h, i) => [h, row[i] || ""]));
+            const edibleParts = (entry["edible_parts"] || "").split(",").map(p => p.trim().toLowerCase());
+            const seasonalParts = [];
+
+            ["leaves", "berry", "tubers", "flowers", "seeds", "shoots"].forEach(part => {
+              if (edibleParts.includes(part)) {
+                const field = part + "_availability";
+                const values = (entry[field] || "").split(",");
+                const status = values[monthIndex];
+                if (status === "1") seasonalParts.push(capitalize(part) + " (Possible)");
+                if (status === "2") seasonalParts.push(capitalize(part) + " (Peak)");
+              }
+            });
+
+            if (seasonalParts.length > 0) {
+              filteredPlants.push({
+                common_name: entry["common_name"],
+                scientific_name: entry["scientific_name"],
+                vegetation_class: entry["vegetation_class"],
+                image_url: entry["image_url"],
+                seasonal_parts: seasonalParts
+              });
+            }
+          });
+
+          localStorage.setItem("seasonalResults", JSON.stringify(filteredPlants));
+          window.location.href = "quick_search_all_tasmania.html";
+        });
+    }
+
+    function capitalize(word) {
+      return word.charAt(0).toUpperCase() + word.slice(1);
     }
 
   </script>
