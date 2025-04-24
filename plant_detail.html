@@ -131,11 +131,32 @@
         <div class="info-block"><span class="info-title">Cultural Notes:</span> ${main.cultural_notes || "(no information)"}</div>
         ${createAvailabilityRow("Berry", (main.berry_availability || "").split(","))}
         ${createAvailabilityRow("Leaf", (main.leaf_availability || "").split(","))}
-        ${Object.entries(extra || {}).map(([k, v]) => {
-          if (["scientific_name", "additional_image_links"].includes(k)) return "";
-          return `<div class="info-block"><span class="info-title">${k.replace(/_/g, " ")}:</span> ${v || "(no information)"}</div>`;
+        ${[
+        "historical_significance",
+        "harvest_notes",
+        "preparation_tip",
+        "toxicity_notes",
+        "shelf_life",
+        "growth_habit",
+        "soil_preferences",
+        "pollinators",
+        "companions",
+        "flavour_profile",
+        "part_prep_notes",
+        "nutritional_info",
+        "active_compounds",
+        "contributors"
+        ].map(key => {
+        const label = key.replace(/_/g, " ");
+        const value = extra?.[key] || "(no information)";
+        return `<div class="info-block"><span class="info-title">${label}:</span> ${value}</div>`;
         }).join("")}
-      `;
+
+        <hr />
+
+        <div class="info-block"><span class="info-title">References:</span> ${extra?.references || "(no information)"}</div>
+
+            `;
     });
   </script>
 </body>
