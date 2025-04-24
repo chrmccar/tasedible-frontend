@@ -40,11 +40,11 @@
 
   <script>
     function convertDriveLinkToImageUrl(url) {
-        if (!url) return "images/placeholder.jpg";
-        url = url.replace(/\s+/g, "");  // Remove all spaces from pasted link
-        const match = url.match(/\/d\/([^/]+)\//);
-        if (!match) return url;  // use as-is if already direct
-        return `https://drive.google.com/uc?export=view&id=${match[1]}`;
+    if (!url) return "images/placeholder.jpg";
+    url = url.replace(/\s+/g, ""); // 🔧 Remove all spaces (important!)
+    const match = url.match(/\/d\/([^/]+)\//); // Extract ID
+    if (!match) return "images/placeholder.jpg"; // fallback
+    return `https://drive.google.com/uc?export=view&id=${match[1]}`;
     }
     fetch("https://tasedible-backend.onrender.com/data")
       .then(res => res.json())
