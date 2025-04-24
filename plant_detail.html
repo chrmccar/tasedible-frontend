@@ -23,22 +23,21 @@
 
   <script>
     const urlParams = new URLSearchParams(window.location.search);
-    const plantParam = urlParams.get('plant') || "";
-    const plantId = plantParam.replace(/_/g, ' ').toLowerCase().trim();
-
+    const rawPlantParam = urlParams.get('plant') || "";
+    const plantId = rawPlantParam.replace(/_/g, " ").toLowerCase().trim();
 
     const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     const spreadsheetId = "1Q4D51JaMm0iN5heeiScv3l-QhhIct4iupAWqQxeNOg0";
     const sheetName = "seasonal_bounty_database";
 
+    function normalize(str) {
+      return (str || "").toLowerCase().replace(/\s+/g, ' ').trim();
+    }
+
     function convertDriveLinkToImageUrl(url) {
       if (!url) return "images/placeholder.jpg";
       const match = url.trim().match(/\/file\/d\/([^/]+)/);
       return match ? `https://lh3.googleusercontent.com/d/${match[1]}=s600` : "images/placeholder.jpg";
-    }
-
-    function normalize(str) {
-        return (str || "").toLowerCase().replace(/\s+/g, ' ').trim();
     }
 
     function createAvailabilityRow(label, values) {
@@ -65,49 +64,48 @@
     }
 
     fetchSheetData().then(data => {
-        const plant = data.find(p => normalize(p.scientific_name) === plantId);
+      const plant = data.find(p => normalize(p.scientific_name) === plantId);
 
+      if (!plant) {
+        document.getElementById("plant-details").innerHTML = `<p>Plant not found — "${plantId}".</p>`;
+        return;
+      }
 
-        if (!plant) {
-            console.warn("❌ Plant not found:", plantId);
-            document.getElementById("plant-details").innerHTML = `<p>Plant not found — "${plantId}".</p>`;
-            return;
-        }
+      const imgUrls = [
+        convertDriveLinkToImageUrl(plant.image_url),
+        ...(plant.additional_image_links ? plant.additional_image_links.split(",").slice(0, 2).map(convertDriveLinkToImageUrl) : [])
+      ];
 
-        const imgUrls = [
-            convertDriveLinkToImageUrl(plant.image_url),
-            ...(plant.additional_image_links ? plant.additional_image_links.split(",").slice(0, 2).map(convertDriveLinkToImageUrl) : [])
-        ];
+      const details = document.getElementById("plant-details");
 
-        const details = document.getElementById("plant-details");
+      const availabilityKeys = [
+        "berry_availability", "leaf_availability", "tuber_availability",
+        "flowers_availability", "seeds_availability", "shoots_availability"
+      ];
 
-        const availabilityKeys = [
-            "berry_availability", "leaf_availability", "tuber_availability",
-            "flowers_availability", "seeds_availability", "shoots_availability"
-        ];
+      const availabilityBlocks = availabilityKeys
+        .filter(key => plant[key])
+        .map(key => createAvailabilityRow(key.replace("_availability", ""), plant[key].split(",")))
+        .join("");
 
-        const availabilityBlocks = availabilityKeys
-            .filter(key => plant[key])
-            .map(key => createAvailabilityRow(key.replace("_availability", ""), plant[key].split(",")))
-            .join("");
+      const excludeKeys = new Set(["scientific_name", "common_name", "image_url", "additional_image_links", ...availabilityKeys]);
 
-        const textFields = Object.entries(plant)
-            .filter(([k, _]) => !["scientific_name", "common_name", "image_url", "additional_image_links", ...availabilityKeys].includes(k))
-            .map(([key, val]) => {
-            const label = key.replace(/_/g, " ");
-            const content = val || "(no information)";
-            return `<div class="info-block"><span class="info-title">${label}:</span> ${content}</div>`;
-            }).join("");
+      const textFields = Object.entries(plant)
+        .filter(([k, _]) => !excludeKeys.has(k))
+        .map(([key, val]) => {
+          const label = key.replace(/_/g, " ");
+          const content = val || "(no information)";
+          return `<div class="info-block"><span class="info-title">${label}:</span> ${content}</div>`;
+        }).join("");
 
-        details.innerHTML = `
-            <h1>${plant.common_name || ""}</h1>
-            <h2><em>${plant.scientific_name}</em></h2>
-            <div class="gallery">${imgUrls.map(url => `<img src="${url}" alt="Image">`).join("")}</div>
-            ${availabilityBlocks}
-            ${textFields}
-        `;
+      details.innerHTML = `
+        <h1>${plant.common_name || ""}</h1>
+        <h2><em>${plant.scientific_name}</em></h2>
+        <div class="gallery">${imgUrls.map(url => `<img src="${url}" alt="Image">`).join("")}</div>
+        ${availabilityBlocks}
+        ${textFields}
+      `;
     });
-
   </script>
 </body>
 </html>
