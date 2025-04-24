@@ -112,13 +112,19 @@
       console.log("🔍 Looking for:", rawId, "→", plantId);
 
 
-      const normalize = str => (str || '').toLowerCase().trim().replace(/\s+/g, '_');
+        const normalizedPlantId = plantId.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase());
 
-      const main = mainData.slice(1).map(r => Object.fromEntries(mainHeaders.map((h, i) => [h, r[i]])))
-        .find(p => normalize(p.scientific_name) === normalize(plantId));
+        const cleanRows = rows => rows.filter(r => r[0] && r[0] !== "scientific_name");
 
-      const extra = extraData.slice(1).map(r => Object.fromEntries(extraHeaders.map((h, i) => [h, r[i]])))
-        .find(p => normalize(p.scientific_name) === normalize(plantId));
+        const main = cleanRows(mainRows).map(r =>
+        Object.fromEntries(mainHeaders.map((h, i) => [h, r[i]]))
+        ).find(p => p.scientific_name === normalizedPlantId);
+
+
+        const extra = cleanRows(extraRows).map(r =>
+        Object.fromEntries(extraHeaders.map((h, i) => [h, r[i]]))
+        ).find(p => p.scientific_name === normalizedPlantId);
+
 
       if (!main) {
         console.warn("⚠️ Plant not found:", plantId);
