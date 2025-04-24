@@ -57,7 +57,13 @@
 
   <script>
     const urlParams = new URLSearchParams(window.location.search);
-    const plantId = urlParams.get('plant');
+    // Convert 'tasmannia_lanceolata' → 'Tasmannia lanceolata'
+    const rawId = urlParams.get('plant') || "";
+    const plantId = rawId
+    .split('_')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+
     const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
     function convertDriveLinkToImageUrl(url) {
@@ -103,14 +109,15 @@
       const extraHeaders = extraData[0], extraRows = extraData.slice(1);
 
       console.log("🔍 Available plants:", mainRows.map(r => r[0]));
-      console.log("🔍 Looking for:", plantId);
+      console.log("🔍 Looking for:", rawId, "→", plantId);
+
 
       const normalize = str => (str || '').toLowerCase().trim().replace(/\s+/g, '_');
 
-      const main = mainRows.map(r => Object.fromEntries(mainHeaders.map((h, i) => [h, r[i]])))
+      const main = mainData.slice(1).map(r => Object.fromEntries(mainHeaders.map((h, i) => [h, r[i]])))
         .find(p => normalize(p.scientific_name) === normalize(plantId));
 
-      const extra = extraRows.map(r => Object.fromEntries(extraHeaders.map((h, i) => [h, r[i]])))
+      const extra = extraData.slice(1).map(r => Object.fromEntries(extraHeaders.map((h, i) => [h, r[i]])))
         .find(p => normalize(p.scientific_name) === normalize(plantId));
 
       if (!main) {
