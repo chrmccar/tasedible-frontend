@@ -47,11 +47,11 @@
     }
 
     function convertDriveLinkToImageUrl(url) {
-      if (!url) return "images/placeholder.jpg";
-      url = url.trim();
-      const match = url.match(/\/file\/d\/([^/]+)/) || url.match(/\/d\/([^/]+)/);
-      if (!match) return "images/placeholder.jpg";
-      return `https://drive.google.com/uc?export=view&id=${match[1]}`;
+        if (!url) return "images/placeholder.jpg";
+        const cleanUrl = url.trim();
+        const match = cleanUrl.match(/\/file\/d\/([^/]+)/) || cleanUrl.match(/\/d\/([^/]+)/);
+        if (!match) return "images/placeholder.jpg";
+        return `https://lh3.googleusercontent.com/d/${match[1]}=s200`;
     }
 
     fetch("https://tasedible-backend.onrender.com/data")
