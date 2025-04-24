@@ -37,6 +37,10 @@
       return match ? `https://lh3.googleusercontent.com/d/${match[1]}=s600` : "images/placeholder.jpg";
     }
 
+    function normalize(str) {
+        return (str || "").toLowerCase().replace(/\s+/g, ' ').trim();
+    }
+
     function createAvailabilityRow(label, values) {
       if (!values || values.length < 12) return '';
       const cells = values.map((val, i) => {
@@ -61,9 +65,8 @@
     }
 
     fetchSheetData().then(data => {
-        const plant = data.find(p =>
-            (p.scientific_name || "").toLowerCase().trim() === plantId
-        );
+        const plant = data.find(p => normalize(p.scientific_name) === plantId);
+
 
         if (!plant) {
             console.warn("❌ Plant not found:", plantId);
