@@ -73,7 +73,7 @@
 
     function convertDriveLinkToImageUrl(url) {
       if (!url) return "images/placeholder.jpg";
-      const match = url.trim().match(/\/file\/d\/([^/]+)/);
+      const match = url.trim().match(/\/file\/d\/([^/]+)/) || url.match(/\/d\/([^/]+)/);
       if (!match) return "images/placeholder.jpg";
       return `https://lh3.googleusercontent.com/d/${match[1]}=s600`;
     }
@@ -93,9 +93,22 @@
       `;
     }
 
+    function fetchGoogleSheetData(spreadsheetId, sheetName) {
+      const query = encodeURIComponent("SELECT *");
+      const url = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?sheet=${sheetName}&tq=${query}`;
+      return fetch(url)
+        .then(res => res.text())
+        .then(text => JSON.parse(text.substring(47).slice(0, -2)))
+        .then(json => {
+          const cols = json.table.cols.map(col => col.label);
+          const rows = json.table.rows.map(row => row.c.map(cell => cell ? cell.v : ""));
+          return [cols, ...rows];
+        });
+    }
+
     Promise.all([
-      fetch("https://tasedible-backend.onrender.com/data").then(r => r.json()),
-      fetch("https://tasedible-backend.onrender.com/extra_data").then(r => r.json())
+      fetchGoogleSheetData("1Q4D51JaMm0iN5heeiScv3l-QhhIct4iupAWqQxeNOg0", "Sheet1"), // main plant data
+      fetchGoogleSheetData("10LUKOokIIZkgDzlQUvGB9IFlLWloj6Mk9VWTbbUWWNY", "Sheet1")  // extra plant details
     ]).then(([mainData, extraData]) => {
       const headers = mainData[0];
       const rows = mainData.slice(1);
@@ -104,6 +117,7 @@
 
       const plant = rows.map(r => Object.fromEntries(headers.map((h, i) => [h, r[i]])))
                         .find(p => (p.scientific_name || '').toLowerCase().replace(/\s+/g, '_') === plantId);
+
       const extra = extraRows.map(r => Object.fromEntries(extraHeaders.map((h, i) => [h, r[i]])))
                         .find(p => (p.scientific_name || '').toLowerCase().replace(/\s+/g, '_') === plantId);
 
@@ -130,13 +144,10 @@
 
         <hr />
         ${Object.entries(extra || {}).map(([key, value]) => {
-          if (key === "scientific_name" || !value) return "";
-          return `<div class="info-block"><span class="info-title">${key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}:</span> ${value}</div>`;
+          if (key === 'scientific_name') return '';
+          return `<div class="info-block"><span class="info-title">${key.replace(/_/g, ' ')}:</span> ${value}</div>`;
         }).join("")}
       `;
-    }).catch(err => {
-      document.getElementById("plant-details").innerHTML = `<p>Something went wrong loading plant data.</p>`;
-      console.error(err);
     });
   </script>
 </body>
