@@ -139,16 +139,18 @@
     <!-- Logo and Title -->
     <div style="text-align: center; margin-bottom: 1rem;">
       <img src="logo.png" alt="TasEdible logo" style="max-height: 250px; margin-bottom: 0.5rem;" />
-      <p style="margin-top: 0.25rem;">Find edible native plants based on your location or vegetation type</p>
+      <p style="margin-top: 0.25rem;">A tool to help you find edible native plants</p>
     </div>
 
     <!-- Quick Search All Tasmania -->
     <button onclick="quickSearchAllTasmania()">Currently in Season (Tasmania Wide)</button>
 
     <!-- Quick Search Near Me -->
-    <button onclick="quickSearch()" style="margin-bottom: 1rem;">Quick Search Near Me - Not Working</button>
+    <button onclick="quickSearch()" style="margin-bottom: 1rem;">Currently in Season (Near You) - Not Working</button>
 
-    <div class="divider">Want more control?</div>
+    <button onclick="window.location.href='all_plants.html'" >Complete List of All Tasmanian Edible Plants</button>    
+
+    <!-- <div class="divider">Want more control?</div> -->
 
     <div id="advanced-wrapper" style="display:none;">
       <label for="location">Search by Location</label>
@@ -211,12 +213,6 @@
       <button onclick="checkPassword()" style="font-size: 1rem; background: none; color: #3a7d60; border: none; cursor: pointer; text-decoration: underline;">
         🌱 Contribute a New Plant
       </button>
-    </p>
-    
-    <p style="text-align: center; margin-top: 0.5rem;">
-      <a href="all_plants.html" style="font-size: 1rem; color: #2e7d32; text-decoration: underline;">
-        🌿 Show All Plants
-      </a>
     </p>
     </div> <!-- END .container -->
     
