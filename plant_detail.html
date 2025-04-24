@@ -107,10 +107,10 @@
 
       const normalize = str => (str || '').toLowerCase().trim().replace(/\s+/g, '_');
 
-      const main = mainRows.slice(1).map(r => Object.fromEntries(mainHeaders.map((h, i) => [h, r[i]])))
+      const main = mainRows.map(r => Object.fromEntries(mainHeaders.map((h, i) => [h, r[i]])))
         .find(p => normalize(p.scientific_name) === normalize(plantId));
 
-      const extra = extraRows.slice(1).map(r => Object.fromEntries(extraHeaders.map((h, i) => [h, r[i]])))
+      const extra = extraRows.map(r => Object.fromEntries(extraHeaders.map((h, i) => [h, r[i]])))
         .find(p => normalize(p.scientific_name) === normalize(plantId));
 
       if (!main) {
