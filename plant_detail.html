@@ -107,7 +107,7 @@
     }
 
     Promise.all([
-      fetchGoogleSheetData("1Q4D51JaMm0iN5heeiScv3l-QhhIct4iupAWqQxeNOg0", "Sheet1"), // main plant data
+      fetchGoogleSheetData("1Q4D51JaMm0iN5heeiScv3l-QhhIct4iupAWqQxeNOg0", "seasonal_bounty_database"), // main plant data
       fetchGoogleSheetData("10LUKOokIIZkgDzlQUvGB9IFlLWloj6Mk9VWTbbUWWNY", "Sheet1")  // extra plant details
     ]).then(([mainData, extraData]) => {
       const headers = mainData[0];
