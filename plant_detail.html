@@ -102,13 +102,18 @@
       const mainHeaders = mainData[0], mainRows = mainData.slice(1);
       const extraHeaders = extraData[0], extraRows = extraData.slice(1);
 
+      console.log("🔍 Available plants:", mainRows.map(r => r[0]));
+      console.log("🔍 Looking for:", plantId);
+
       const main = mainRows.map(r => Object.fromEntries(mainHeaders.map((h, i) => [h, r[i]])))
-        .find(p => (p.scientific_name || '').toLowerCase().replace(/\s+/g, '_') === plantId);
+        .find(p => ((p.scientific_name || '').toLowerCase().trim().replace(/\s+/g, '_')) === plantId);
       const extra = extraRows.map(r => Object.fromEntries(extraHeaders.map((h, i) => [h, r[i]])))
-        .find(p => (p.scientific_name || '').toLowerCase().replace(/\s+/g, '_') === plantId);
+         .find(p => ((p.scientific_name || '').toLowerCase().trim().replace(/\s+/g, '_')) === plantId);
 
       if (!main) {
-        document.getElementById("plant-details").innerHTML = "<p>Plant not found.</p>";
+        console.warn("⚠️ Plant not found:", plantId);
+        console.warn("🔎 Available options:", mainRows.map(r => r[0]));
+        document.getElementById("plant-details").innerHTML = "<p>Plant not found — check console logs above for clues.</p>";
         return;
       }
 
@@ -148,7 +153,7 @@
         "contributors"
         ].map(key => {
         const label = key.replace(/_/g, " ");
-        const value = extra?.[key] || "(no information)";
+        const value = (extra?.[key] || "").replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank">$1</a>') || "(no information)";
         return `<div class="info-block"><span class="info-title">${label}:</span> ${value}</div>`;
         }).join("")}
 
