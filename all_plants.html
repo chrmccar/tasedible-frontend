@@ -41,7 +41,8 @@
   <script>
     function convertDriveLinkToImageUrl(url) {
         if (!url) return "images/placeholder.jpg";
-        const match = url.match(/\/d\/(.*?)\//);
+        url = url.replace(/\s+/g, "");  // Remove all spaces from pasted link
+        const match = url.match(/\/d\/([^/]+)\//);
         if (!match) return url;  // use as-is if already direct
         return `https://drive.google.com/uc?export=view&id=${match[1]}`;
     }
