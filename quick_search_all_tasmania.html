@@ -93,19 +93,26 @@
 
         filteredPlants.forEach(plant => {
           const imageUrl = convertDriveLinkToImageUrl(plant["image_url"]);
-          const div = document.createElement("div");
-          div.className = "plant-card";
-          div.innerHTML = `
-            <div style="display: flex; gap: 1rem; align-items: center;">
-              <img src="${imageUrl}" alt="${plant["common_name"]}" style="width: 100px; height: 100px; object-fit: cover; border-radius: 8px;" onerror="this.src='images/placeholder.jpg'">
-              <div>
-                <h2>${plant["common_name"] || "Unnamed Plant"} <small>(${plant["scientific_name"] || "Unknown"})</small></h2>
-                <p><strong>In season:</strong> ${plant.seasonal_parts.join(", ")}</p>
-                <p><strong>Vegetation type:</strong> ${plant["vegetation_class"] || "Unknown"}</p>
-              </div>
+          const plantId = (plant["scientific_name"] || "").toLowerCase().replace(/\s+/g, "_");
+          const card = document.createElement("a");
+          card.href = `plant_detail.html?plant=${encodeURIComponent(plantId)}`;
+          card.style.textDecoration = "none";
+          card.style.color = "inherit";
+
+          card.innerHTML = `
+            <div class="plant-card">
+                <div style="display: flex; gap: 1rem; align-items: center;">
+                <img src="${imageUrl}" alt="${plant["common_name"]}" style="width: 100px; height: 100px; object-fit: cover; border-radius: 8px;" onerror="this.src='images/placeholder.jpg'">
+                <div>
+                    <h2>${plant["common_name"] || "Unnamed Plant"} <small>(${plant["scientific_name"] || "Unknown"})</small></h2>
+                    <p><strong>In season:</strong> ${plant.seasonal_parts.join(", ")}</p>
+                    <p><strong>Vegetation type:</strong> ${plant["vegetation_class"] || "Unknown"}</p>
+                </div>
+                </div>
             </div>
           `;
-          container.appendChild(div);
+
+          container.appendChild(card);
         });
       });
   </script>
