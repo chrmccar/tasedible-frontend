@@ -11,81 +11,130 @@
       padding: 2rem;
       color: #2f4f4f;
     }
-    .container {
-      background: white;
-      padding: 2rem;
-      border-radius: 12px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-      max-width: 700px;
+    .plant-container {
+      max-width: 800px;
       margin: auto;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+      padding: 2rem;
     }
-    h1, h2 {
+    h1 {
       color: #2e7d32;
+      margin-bottom: 0.2rem;
+    }
+    h2 {
+      font-style: italic;
+      margin-top: 0;
+      color: #3a3a3a;
     }
     img {
-      width: 100%;
-      max-width: 300px;
+      max-width: 100%;
+      height: auto;
       border-radius: 12px;
-      object-fit: cover;
-      margin-bottom: 1rem;
+      margin: 1rem 0;
     }
-    .field {
-      margin-bottom: 1rem;
+    .info-block {
+      margin-bottom: 1.5rem;
     }
-    .label {
+    .info-title {
       font-weight: bold;
       color: #3a7d60;
+    }
+    .season-grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 2px;
+      margin-top: 0.25rem;
+    }
+    .season-grid div {
+      text-align: center;
+      padding: 0.5rem 0;
+      font-size: 0.8rem;
+      border-radius: 4px;
+      background-color: #e0e0e0;
+    }
+    .season-grid .peak {
+      background-color: #3a7d60;
+      color: white;
+    }
+    .season-grid .possible {
+      background-color: #a5d6a7;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div id="content">Loading plant data...</div>
-  </div>
+  <div class="plant-container" id="plant-details">Loading...</div>
 
   <script>
-    function getQueryParam(name) {
-      const urlParams = new URLSearchParams(window.location.search);
-      return urlParams.get(name);
-    }
+    const urlParams = new URLSearchParams(window.location.search);
+    const plantId = urlParams.get('plant');
+
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
     function convertDriveLinkToImageUrl(url) {
       if (!url) return "images/placeholder.jpg";
       const match = url.trim().match(/\/file\/d\/([^/]+)/) || url.match(/\/d\/([^/]+)/);
-      return match ? `https://lh3.googleusercontent.com/d/${match[1]}=s400` : url;
+      if (!match) return "images/placeholder.jpg";
+      return `https://lh3.googleusercontent.com/d/${match[1]}=s600`;
     }
 
-    fetch("https://tasedible-backend.onrender.com/data")
-      .then(res => res.json())
-      .then(data => {
-        const headers = data[0];
-        const rows = data.slice(1);
-        const plantId = getQueryParam("plant");
+    function createAvailabilityRow(label, values) {
+      if (!values || values.length < 12) return '';
+      const cells = values.map((val, i) => {
+        if (val === "2") return `<div class='peak' title='${months[i]} (Peak)'>${months[i]}</div>`;
+        if (val === "1") return `<div class='possible' title='${months[i]} (Possible)'>${months[i]}</div>`;
+        return `<div>${months[i]}</div>`;
+      }).join("");
+      return `
+        <div class="info-block">
+          <div class="info-title">${label} Availability:</div>
+          <div class="season-grid">${cells}</div>
+        </div>
+      `;
+    }
 
-        const matchingRow = rows.find(row => {
-          const entry = Object.fromEntries(headers.map((h, i) => [h, row[i] || ""]));
-          const scientificNameSlug = (entry["scientific_name"] || "").toLowerCase().replace(/\s+/g, "_");
-          return scientificNameSlug === plantId;
-        });
+    Promise.all([
+      fetch("https://tasedible-backend.onrender.com/data").then(r => r.json()),
+      fetch("https://tasedible-backend.onrender.com/extra_data").then(r => r.json())
+    ]).then(([mainData, extraData]) => {
+      const headers = mainData[0];
+      const rows = mainData.slice(1);
+      const extraHeaders = extraData[0];
+      const extraRows = extraData.slice(1);
 
-        const container = document.getElementById("content");
+      const plant = rows.map(r => Object.fromEntries(headers.map((h, i) => [h, r[i]])))
+                        .find(p => (p.scientific_name || '').toLowerCase().replace(/\s+/g, '_') === plantId);
+      const extra = extraRows.map(r => Object.fromEntries(extraHeaders.map((h, i) => [h, r[i]])))
+                        .find(p => (p.scientific_name || '').toLowerCase().replace(/\s+/g, '_') === plantId);
 
-        if (!matchingRow) {
-          container.innerHTML = `<p>Plant not found.</p>`;
-          return;
-        }
+      if (!plant) {
+        document.getElementById("plant-details").innerHTML = "<p>Plant not found.</p>";
+        return;
+      }
 
-        const entry = Object.fromEntries(headers.map((h, i) => [h, matchingRow[i] || ""]));
-        const imageUrl = convertDriveLinkToImageUrl(entry["image_url"]);
+      const details = document.getElementById("plant-details");
+      const imageUrl = convertDriveLinkToImageUrl(plant.image_url);
 
-        container.innerHTML = `
-          <h1>${entry["common_name"] || "Unnamed Plant"}</h1>
-          <h2><em>${entry["scientific_name"] || "Unknown"}</em></h2>
-          <img src="${imageUrl}" alt="${entry["common_name"]}" />
-          <div class="field"><span class="label">Vegetation Class:</span> ${entry["vegetation_class"] || "Unknown"}</div>
-          <div class="field"><span class="label">Edible Parts:</span> ${entry["edible_parts"] || "Unknown"}</div>
-        `;
-      });
+      details.innerHTML = `
+        <h1>${plant.common_name}</h1>
+        <h2><em>${plant.scientific_name}</em></h2>
+        <img src="${imageUrl}" alt="${plant.common_name}" />
+
+        <div class="info-block"><span class="info-title">Vegetation Class:</span> ${plant.vegetation_class || "—"}</div>
+        <div class="info-block"><span class="info-title">Edible Parts:</span> ${plant.edible_parts || "—"}</div>
+        <div class="info-block"><span class="info-title">Preparation Notes:</span> ${plant.preparation_notes || "—"}</div>
+        <div class="info-block"><span class="info-title">Toxicity Warning:</span> ${plant.toxicity_warning || "—"}</div>
+        <div class="info-block"><span class="info-title">Cultural Notes:</span> ${plant.cultural_notes || "—"}</div>
+        ${createAvailabilityRow("Berry", (plant.berry_availability || "").split(","))}
+        ${createAvailabilityRow("Leaf", (plant.leaf_availability || "").split(","))}
+
+        <hr />
+        <div class="info-block"><span class="info-title">Extra Notes:</span> ${extra?.notes || ""}</div>
+        <div class="info-block"><span class="info-title">Uses:</span> ${extra?.uses || ""}</div>
+        <div class="info-block"><span class="info-title">References:</span> ${extra?.references || ""}</div>
+      `;
+    });
   </script>
 </body>
 </html>
