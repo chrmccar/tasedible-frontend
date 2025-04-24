@@ -60,7 +60,10 @@
     }
 
     fetchSheetData().then(data => {
-      const plant = data.find(p => (p.scientific_name || "").trim() === plantId);
+      const plant = data.find(p =>
+        (p.scientific_name || "").trim().toLowerCase() === plantId.toLowerCase()
+      );
+
       if (!plant) {
         console.warn("❌ Plant not found:", plantId);
         document.getElementById("plant-details").innerHTML = `<p>Plant not found — "${plantId}".</p>`;
