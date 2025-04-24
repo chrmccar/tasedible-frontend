@@ -23,16 +23,8 @@
 
   <script>
     const urlParams = new URLSearchParams(window.location.search);
-    const rawPlantParam = urlParams.get('plant') || "";
-    const plantId = rawPlantParam.replace(/_/g, " ").toLowerCase().trim();
-
-    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    const spreadsheetId = "1Q4D51JaMm0iN5heeiScv3l-QhhIct4iupAWqQxeNOg0";
-    const sheetName = "seasonal_bounty_database";
-
-    function normalize(str) {
-      return (str || "").toLowerCase().replace(/\s+/g, ' ').trim();
-    }
+    const rawPlantId = urlParams.get('plant') || "";
+    const plantId = rawPlantId.replace(/_/g, ' ').trim().toLowerCase();
 
     function convertDriveLinkToImageUrl(url) {
       if (!url) return "images/placeholder.jpg";
@@ -41,6 +33,7 @@
     }
 
     function createAvailabilityRow(label, values) {
+      const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
       if (!values || values.length < 12) return '';
       const cells = values.map((val, i) => {
         if (val === "2") return `<div class='peak'>${months[i]}</div>`;
@@ -50,62 +43,39 @@
       return `<div class="info-block"><div class="info-title">${label} Availability:</div><div class="season-grid">${cells}</div></div>`;
     }
 
-    function fetchSheetData() {
-      const query = encodeURIComponent("SELECT *");
-      const url = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?sheet=${sheetName}&tq=${query}`;
-      return fetch(url)
-        .then(res => res.text())
-        .then(text => JSON.parse(text.substring(47).slice(0, -2)))
-        .then(json => {
-          const cols = json.table.cols.map(col => col.label);
-          const rows = json.table.rows.map(row => row.c.map(cell => cell ? cell.v : ""));
-          return rows.map(r => Object.fromEntries(cols.map((h, i) => [h, r[i]])));
-        });
-    }
+    fetch("https://tasedible-backend.onrender.com/data")
+      .then(res => res.json())
+      .then(data => {
+        const headers = data[0];
+        const rows = data.slice(1);
+        const plants = rows.map(row => Object.fromEntries(headers.map((h, i) => [h, row[i] || ""])));
+        const plant = plants.find(p => (p.scientific_name || "").toLowerCase().trim() === plantId);
 
-    fetchSheetData().then(data => {
-      const plant = data.find(p => normalize(p.scientific_name) === plantId);
+        if (!plant) {
+          document.getElementById("plant-details").innerHTML = `<p>Plant not found — "${plantId}".</p>`;
+          return;
+        }
 
-      if (!plant) {
-        document.getElementById("plant-details").innerHTML = `<p>Plant not found — "${plantId}".</p>`;
-        return;
-      }
+        const imgUrls = [
+          convertDriveLinkToImageUrl(plant.image_url),
+          ...(plant.additional_image_links ? plant.additional_image_links.split(",").slice(0, 2).map(convertDriveLinkToImageUrl) : [])
+        ];
 
-      const imgUrls = [
-        convertDriveLinkToImageUrl(plant.image_url),
-        ...(plant.additional_image_links ? plant.additional_image_links.split(",").slice(0, 2).map(convertDriveLinkToImageUrl) : [])
-      ];
+        const availabilityFields = ["berry_availability", "leaf_availability", "tuber_availability", "flowers_availability", "seeds_availability", "shoots_availability"];
+        const availabilityBlocks = availabilityFields.map(key => plant[key] ? createAvailabilityRow(key.replace("_availability", ""), plant[key].split(",")) : '').join("");
 
-      const details = document.getElementById("plant-details");
+        const textBlocks = headers.filter(h => !["scientific_name", "common_name", "image_url", "additional_image_links", ...availabilityFields].includes(h))
+          .map(h => `<div class="info-block"><span class="info-title">${h.replace(/_/g, " ")}:</span> ${plant[h] || "(no information)"}</div>`)
+          .join("");
 
-      const availabilityKeys = [
-        "berry_availability", "leaf_availability", "tuber_availability",
-        "flowers_availability", "seeds_availability", "shoots_availability"
-      ];
-
-      const availabilityBlocks = availabilityKeys
-        .filter(key => plant[key])
-        .map(key => createAvailabilityRow(key.replace("_availability", ""), plant[key].split(",")))
-        .join("");
-
-      const excludeKeys = new Set(["scientific_name", "common_name", "image_url", "additional_image_links", ...availabilityKeys]);
-
-      const textFields = Object.entries(plant)
-        .filter(([k, _]) => !excludeKeys.has(k))
-        .map(([key, val]) => {
-          const label = key.replace(/_/g, " ");
-          const content = val || "(no information)";
-          return `<div class="info-block"><span class="info-title">${label}:</span> ${content}</div>`;
-        }).join("");
-
-      details.innerHTML = `
-        <h1>${plant.common_name || ""}</h1>
-        <h2><em>${plant.scientific_name}</em></h2>
-        <div class="gallery">${imgUrls.map(url => `<img src="${url}" alt="Image">`).join("")}</div>
-        ${availabilityBlocks}
-        ${textFields}
-      `;
-    });
+        document.getElementById("plant-details").innerHTML = `
+          <h1>${plant.common_name}</h1>
+          <h2><em>${plant.scientific_name}</em></h2>
+          <div class="gallery">${imgUrls.map(url => `<img src="${url}" alt="Image">`).join("")}</div>
+          ${availabilityBlocks}
+          ${textBlocks}
+        `;
+      });
   </script>
 </body>
 </html>
