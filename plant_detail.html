@@ -24,7 +24,8 @@
   <script>
     const urlParams = new URLSearchParams(window.location.search);
     const plantParam = urlParams.get('plant') || "";
-    const plantId = plantParam.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+    const plantId = plantParam.replace(/_/g, ' ').toLowerCase().trim();
+
 
     const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     const spreadsheetId = "1Q4D51JaMm0iN5heeiScv3l-QhhIct4iupAWqQxeNOg0";
@@ -61,7 +62,7 @@
 
     fetchSheetData().then(data => {
         const plant = data.find(p =>
-            (p.scientific_name || "").trim().toLowerCase() === plantId.toLowerCase()
+            (p.scientific_name || "").toLowerCase().trim() === plantId
         );
 
         if (!plant) {
