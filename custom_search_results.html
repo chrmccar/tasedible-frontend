@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Advanced Search Results</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f4faf6;
+      padding: 2rem;
+      color: #2f4f4f;
+    }
+    h1 {
+      font-size: 1.8rem;
+      margin-bottom: 1rem;
+      color: #2e7d32;
+    }
+    .plant-card {
+      background: white;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    }
+    .plant-card h2 {
+      margin: 0;
+      font-size: 1.2rem;
+      color: #3a7d60;
+    }
+    .plant-card p {
+      margin: 0.25rem 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>🔍 Search Results</h1>
+  <div id="plant-list">Loading...</div>
+
+  <script>
+    function capitalize(str) {
+      return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+
+    function convertDriveLinkToImageUrl(url) {
+      if (!url) return "images/placeholder.jpg";
+      const match = url.match(/\/file\/d\/([^/]+)/) || url.match(/\/d\/([^/]+)/);
+      if (!match) return url;
+      return `https://lh3.googleusercontent.com/d/${match[1]}=s200`;
+    }
+
+    const params = JSON.parse(localStorage.getItem("searchCriteria"));
+    const monthIndex = new Date(params.date).getMonth();
+
+    fetch("https://tasedible-backend.onrender.com/data")
+      .then(res => res.json())
+      .then(data => {
+        const headers = data[0];
+        const rows = data.slice(1);
+        const results = [];
+
+        rows.forEach(row => {
+          const entry = Object.fromEntries(headers.map((h, i) => [h, row[i] || ""]));
+
+          // === Filter by parts in season ===
+          const matchingParts = [];
+          (params.parts || []).forEach(part => {
+            const field = part + "_availability";
+            const values = (entry[field] || "").split(",");
+            const status = values[monthIndex];
+            if (status === "1") matchingParts.push(capitalize(part) + " (Possible)");
+            if (status === "2") matchingParts.push(capitalize(part) + " (Peak)");
+          });
+
+          if (params.parts.length && matchingParts.length === 0) return;
+
+          // === Filter by vegetation if specified ===
+          if (params.vegetation.length > 0 && !params.vegetation.includes(entry.vegetation_class)) return;
+
+          results.push({ ...entry, matchingParts });
+        });
+
+        const container = document.getElementById("plant-list");
+        container.innerHTML = "";
+
+        if (results.length === 0) {
+          container.innerHTML = "<p>No plants match your search criteria.</p>";
+          return;
+        }
+
+        results.forEach(plant => {
+          const imageUrl = convertDriveLinkToImageUrl(plant["image_url"]);
+          const div = document.createElement("div");
+          div.className = "plant-card";
+          div.innerHTML = `
+            <div style="display: flex; gap: 1rem; align-items: center;">
+              <img src="${imageUrl}" alt="${plant["common_name"]}" style="width: 100px; height: 100px; object-fit: cover; border-radius: 8px;">
+              <div>
+                <h2>${plant["common_name"]} <small>(${plant["scientific_name"]})</small></h2>
+                ${plant.matchingParts.length > 0 ? `<p><strong>In season:</strong> ${plant.matchingParts.join(", ")}</p>` : ""}
+                <p><strong>Vegetation type:</strong> ${plant["vegetation_class"]}</p>
+              </div>
+            </div>
+          `;
+          container.appendChild(div);
+        });
+      });
+  </script>
+</body>
+</html>

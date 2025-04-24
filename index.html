@@ -143,7 +143,7 @@
     </div>
 
     <!-- Quick Search All Tasmania -->
-    <button onclick="quickSearchAllTasmania()">Quick Search All Tasmania</button>
+    <button onclick="quickSearchAllTasmania()">Currently in Season (Tasmania Wide)</button>
 
     <!-- Quick Search Near Me -->
     <button onclick="quickSearch()" style="margin-bottom: 1rem;">Quick Search Near Me - Not Working</button>
@@ -220,7 +220,6 @@
     </p>
     </div> <!-- END .container -->
     
-  
 
   <script>
     // Fill in today's date on load
@@ -277,19 +276,15 @@
     }
 
     function storeAndRedirect(location, parts, vegetation, date) {
-      localStorage.setItem("lastSearchLocation", location);
-      localStorage.setItem("lastSearchParts", JSON.stringify(parts));
-      localStorage.setItem("lastSearchVegetation", JSON.stringify(vegetation));
-      localStorage.setItem("lastSearchDate", date);
+      const criteria = {
+        location: location || "",
+        parts: parts || [],
+        vegetation: vegetation || [],
+        date: date || new Date().toISOString().split("T")[0]
+      };
 
-      console.log("Saving to localStorage:", {
-        location,
-        parts,
-        vegetation,
-        date
-      });
-
-      window.location.href = "results.html";
+      localStorage.setItem("searchCriteria", JSON.stringify(criteria));
+      window.location.href = "custom_search_results.html";
     }
 
     function searchPlants() {
