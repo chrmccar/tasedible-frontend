@@ -12,7 +12,7 @@
       color: #2f4f4f;
     }
     .plant-container {
-      max-width: 800px;
+      max-width: 900px;
       margin: auto;
       background: white;
       border-radius: 12px;
@@ -41,26 +41,6 @@
       font-weight: bold;
       color: #3a7d60;
     }
-    .season-grid {
-      display: grid;
-      grid-template-columns: repeat(12, 1fr);
-      gap: 2px;
-      margin-top: 0.25rem;
-    }
-    .season-grid div {
-      text-align: center;
-      padding: 0.5rem 0;
-      font-size: 0.8rem;
-      border-radius: 4px;
-      background-color: #e0e0e0;
-    }
-    .season-grid .peak {
-      background-color: #3a7d60;
-      color: white;
-    }
-    .season-grid .possible {
-      background-color: #a5d6a7;
-    }
   </style>
 </head>
 <body>
@@ -70,28 +50,11 @@
     const urlParams = new URLSearchParams(window.location.search);
     const plantId = urlParams.get('plant');
 
-    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-
     function convertDriveLinkToImageUrl(url) {
       if (!url) return "images/placeholder.jpg";
       const match = url.trim().match(/\/file\/d\/([^/]+)/) || url.match(/\/d\/([^/]+)/);
       if (!match) return "images/placeholder.jpg";
       return `https://lh3.googleusercontent.com/d/${match[1]}=s600`;
-    }
-
-    function createAvailabilityRow(label, values) {
-      if (!values || values.length < 12) return '';
-      const cells = values.map((val, i) => {
-        if (val === "2") return `<div class='peak' title='${months[i]} (Peak)'>${months[i]}</div>`;
-        if (val === "1") return `<div class='possible' title='${months[i]} (Possible)'>${months[i]}</div>`;
-        return `<div>${months[i]}</div>`;
-      }).join("");
-      return `
-        <div class="info-block">
-          <div class="info-title">${label} Availability:</div>
-          <div class="season-grid">${cells}</div>
-        </div>
-      `;
     }
 
     Promise.all([
@@ -113,26 +76,38 @@
         return;
       }
 
-      const details = document.getElementById("plant-details");
+      const d = document.getElementById("plant-details");
       const imageUrl = convertDriveLinkToImageUrl(plant.image_url);
 
-      details.innerHTML = `
-        <h1>${plant.common_name}</h1>
-        <h2><em>${plant.scientific_name}</em></h2>
-        <img src="${imageUrl}" alt="${plant.common_name}" />
+      d.innerHTML = `
+        <h1>${plant.common_name || "Unnamed Plant"}</h1>
+        <h2><em>${plant.scientific_name || "Unknown"}</em></h2>
+        <img src="${imageUrl}" alt="${plant.common_name || "Plant image"}" />
 
         <div class="info-block"><span class="info-title">Vegetation Class:</span> ${plant.vegetation_class || "—"}</div>
         <div class="info-block"><span class="info-title">Edible Parts:</span> ${plant.edible_parts || "—"}</div>
         <div class="info-block"><span class="info-title">Preparation Notes:</span> ${plant.preparation_notes || "—"}</div>
         <div class="info-block"><span class="info-title">Toxicity Warning:</span> ${plant.toxicity_warning || "—"}</div>
         <div class="info-block"><span class="info-title">Cultural Notes:</span> ${plant.cultural_notes || "—"}</div>
-        ${createAvailabilityRow("Berry", (plant.berry_availability || "").split(","))}
-        ${createAvailabilityRow("Leaf", (plant.leaf_availability || "").split(","))}
 
         <hr />
-        <div class="info-block"><span class="info-title">Extra Notes:</span> ${extra?.notes || ""}</div>
-        <div class="info-block"><span class="info-title">Uses:</span> ${extra?.uses || ""}</div>
-        <div class="info-block"><span class="info-title">References:</span> ${extra?.references || ""}</div>
+
+        <div class="info-block"><span class="info-title">Historical Significance:</span> ${extra?.historical_significance || "—"}</div>
+        <div class="info-block"><span class="info-title">Harvest Notes:</span> ${extra?.harvest_notes || "—"}</div>
+        <div class="info-block"><span class="info-title">Preparation Tip:</span> ${extra?.preparation_tip || "—"}</div>
+        <div class="info-block"><span class="info-title">Toxicity Notes:</span> ${extra?.toxicity_notes || "—"}</div>
+        <div class="info-block"><span class="info-title">Shelf Life:</span> ${extra?.shelf_life || "—"}</div>
+        <div class="info-block"><span class="info-title">Growth Habit:</span> ${extra?.growth_habit || "—"}</div>
+        <div class="info-block"><span class="info-title">Soil Preferences:</span> ${extra?.soil_preferences || "—"}</div>
+        <div class="info-block"><span class="info-title">Pollinators:</span> ${extra?.pollinators || "—"}</div>
+        <div class="info-block"><span class="info-title">Companions:</span> ${extra?.companions || "—"}</div>
+        <div class="info-block"><span class="info-title">Flavour Profile:</span> ${extra?.flavour_profile || "—"}</div>
+        <div class="info-block"><span class="info-title">Part Prep Notes:</span> ${extra?.part_prep_notes || "—"}</div>
+        <div class="info-block"><span class="info-title">Nutritional Info:</span> ${extra?.nutritional_info || "—"}</div>
+        <div class="info-block"><span class="info-title">Active Compounds:</span> ${extra?.active_compounds || "—"}</div>
+        <div class="info-block"><span class="info-title">References:</span> ${extra?.references || "—"}</div>
+        <div class="info-block"><span class="info-title">Contributors:</span> ${extra?.contributors || "—"}</div>
+        <div class="info-block"><span class="info-title">Additional Images:</span> ${extra?.additional_image_links || "—"}</div>
       `;
     });
   </script>
